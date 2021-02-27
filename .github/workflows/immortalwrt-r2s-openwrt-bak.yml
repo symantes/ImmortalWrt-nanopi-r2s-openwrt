@@ -4,7 +4,7 @@ on:
   repository_dispatch:
   workflow_dispatch:
   schedule:
-    - cron: 0 1 * * 1
+    - cron: 0 0 * * 1
 jobs:
   ImmortalWrt-18_06:
     runs-on: ubuntu-18.04
@@ -68,12 +68,7 @@ jobs:
       with:
         name: immortalwrt-18.06-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz
         path: /home/runner/immortalwrt-18.06-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz
-    - name: Upload ImmortalWrt-18.06 Firmwares to Cloud
-      timeout-minutes: 30
-      run: |
-        cd "/home/runner"
-        zip -j "immortalwrt-18.06-rockchip-armv8-friendlyarm_nanopi-r2s-sysupgrade.zip" "immortalwrt-18.06-rockchip-armv8-friendlyarm_nanopi-r2s-ext4-sysupgrade.img.gz" "immortalwrt-18.06-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz" "immortalwrt-18.06-sha256sums"
-        ${GITHUB_WORKSPACE}/scripts/upload_firmware.py  --device-name "FriendlyARM NanoPi R2S" --device-file "rockchip-armv8-friendlyarm_nanopi-r2s" --immortalwrt-version "18.06" --kernel-version "5.4" --api-id "${{ secrets.TELEGRAM_API_ID }}" --api-hash "${{ secrets.TELEGRAM_API_HASH }}" --bot-token "${{ secrets.TELEGRAM_BOT_TOKEN }}" || exit 0
+
   ImmortalWrt-Snapshot:
     runs-on: ubuntu-18.04
     steps:
@@ -136,28 +131,3 @@ jobs:
       with:
         name: immortalwrt-snapshot-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz
         path: /home/runner/immortalwrt-snapshot-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz
-    - name: Upload ImmortalWrt-Snapshot Firmwares to Cloud
-      timeout-minutes: 30
-      run: |
-        cd "/home/runner"
-        zip -j "immortalwrt-snapshot-rockchip-armv8-friendlyarm_nanopi-r2s-sysupgrade.zip" "immortalwrt-snapshot-rockchip-armv8-friendlyarm_nanopi-r2s-ext4-sysupgrade.img.gz" "immortalwrt-snapshot-rockchip-armv8-friendlyarm_nanopi-r2s-squashfs-sysupgrade.img.gz" "immortalwrt-snapshot-sha256sums"
-        ${GITHUB_WORKSPACE}/scripts/upload_firmware.py  --device-name "FriendlyARM NanoPi R2S" --device-file "rockchip-armv8-friendlyarm_nanopi-r2s" --immortalwrt-version "snapshot" --kernel-version "5.4" --api-id "${{ secrets.TELEGRAM_API_ID }}" --api-hash "${{ secrets.TELEGRAM_API_HASH }}" --bot-token "${{ secrets.TELEGRAM_BOT_TOKEN }}" || exit 0
-  Cleanup-Old-Artifacts:
-    needs: [ImmortalWrt-18_06,ImmortalWrt-Snapshot]
-    runs-on: ubuntu-18.04
-    steps:
-    - name: Cleanup Old Action Artifacts
-      uses: kolpav/purge-artifacts-action@v1
-      with:
-        token: ${{ github.token }}
-        expire-in: 7d
-  Cleanup-Workflow-Runs:
-    needs: Cleanup-Old-Artifacts
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Cleanup Workflow Runs
-        uses: GitRML/delete-workflow-runs@v1.2.1
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 7
